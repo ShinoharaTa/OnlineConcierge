@@ -6,6 +6,7 @@ import {
   isReplyToUser,
   subscribe,
   getUserMeta,
+  ojisanExists,
 } from "./nostr.js";
 import { GoogleCalendarClient } from "./googleCalendar.js";
 import { formatISO } from "date-fns";
@@ -20,7 +21,7 @@ const main = async () => {
   const googleCalendarClient = new GoogleCalendarClient();
   const ojisanClient = new OjisanClient();
   await googleCalendarClient.authorize();
-
+  let ojisan_latest = [];
   console.log("start sub");
   subscribe(async (ev) => {
     try {
@@ -53,10 +54,20 @@ const main = async () => {
         } else {
           send("コマンド確認して", ev);
         }
-      } else if (Math.random() < 0.1) {
+      } else if (ojisanExists(ev.pubkey)) {
+        if (
+          ojisan_latest.includes(ev.pubkey) ||
+          Math.random() > 0.06 ||
+          ev.content.length < 10
+        ) {
+          // console.log("expire");
+          return;
+        }
+        ojisan_latest = ojisan_latest.slice(0, 10);
+        ojisan_latest.push(ev.pubkey);
         const profile = await getUserMeta(ev.pubkey);
         const post = await ojisanClient.reactionToPost(ev.content, profile);
-        console.log(post);
+        // console.log(post);
         sendOji(post);
       }
       console.log("test");

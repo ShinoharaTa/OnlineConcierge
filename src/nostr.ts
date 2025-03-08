@@ -87,6 +87,10 @@ export function isReplyToUser(ev: Event): boolean {
   return ev.tags.find((tag) => tag.includes("p"))?.[1] === getPublicKey(HEX);
 }
 
+export function ojisanExists(npub: string) {
+  return nip19.npubEncode(getPublicKey(OJI_HEX)) !== npub;
+}
+
 export function getNpub(): string {
   return nip19.npubEncode(getPublicKey(HEX));
 }
