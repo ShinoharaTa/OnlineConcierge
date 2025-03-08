@@ -1,7 +1,15 @@
 import cron from "node-cron";
-import { send, getNpub, isReplyToUser, subscribe } from "./nostr.js";
+import {
+  send,
+  sendOji,
+  getNpub,
+  isReplyToUser,
+  subscribe,
+  getUserMeta,
+} from "./nostr.js";
 import { GoogleCalendarClient } from "./googleCalendar.js";
 import { formatISO } from "date-fns";
+import { OjisanClient } from "./ojisan.js";
 
 const safelist = [
   "fe9edd5d5c635dd2900f1f86a872e81ce1d6e20bd4e06549f133ae6bf158913b",
@@ -10,6 +18,7 @@ const safelist = [
 
 const main = async () => {
   const googleCalendarClient = new GoogleCalendarClient();
+  const ojisanClient = new OjisanClient();
   await googleCalendarClient.authorize();
 
   console.log("start sub");
@@ -44,7 +53,13 @@ const main = async () => {
         } else {
           send("コマンド確認して", ev);
         }
+      } else if (Math.random() < 0.1) {
+        const profile = await getUserMeta(ev.pubkey);
+        const post = await ojisanClient.reactionToPost(ev.content, profile);
+        console.log(post);
+        sendOji(post);
       }
+      console.log("test");
     } catch (ex) {
       console.error(ex);
     }
