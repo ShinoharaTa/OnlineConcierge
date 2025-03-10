@@ -54,21 +54,21 @@ const main = async () => {
         } else {
           send("コマンド確認して", ev);
         }
-      } else if (ojisanExists(ev.pubkey)) {
-        if (
-          ojisan_latest.includes(ev.pubkey) ||
-          Math.random() > 0.06 ||
-          ev.content.length < 10
-        ) {
-          // console.log("expire");
-          return;
-        }
-        ojisan_latest = ojisan_latest.slice(0, 10);
-        ojisan_latest.push(ev.pubkey);
-        const profile = await getUserMeta(ev.pubkey);
-        const post = await ojisanClient.reactionToPost(ev.content, profile);
-        // console.log(post);
-        sendOji(post);
+        // } else if (ojisanExists(ev.pubkey)) {
+        //   if (
+        //     ojisan_latest.includes(ev.pubkey) ||
+        //     Math.random() > 0.06 ||
+        //     ev.content.length < 10
+        //   ) {
+        //     // console.log("expire");
+        //     return;
+        //   }
+        //   ojisan_latest = ojisan_latest.slice(0, 10);
+        //   ojisan_latest.push(ev.pubkey);
+        //   const profile = await getUserMeta(ev.pubkey);
+        //   const post = await ojisanClient.reactionToPost(ev.content, profile);
+        //   // console.log(post);
+        //   sendOji(post);
       }
       console.log("test");
     } catch (ex) {
