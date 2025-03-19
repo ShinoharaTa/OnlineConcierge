@@ -13,6 +13,7 @@ import "websocket-polyfill";
 dotenv.config();
 const HEX: string = process.env.HEX ?? "";
 const OJI_HEX: string = process.env.OJI_HEX ?? "";
+const PASSPORT_HEX: string = process.env.PASSPORT_HEX ?? "";
 const pool = new SimplePool();
 
 const RELAYS = [
@@ -70,6 +71,26 @@ export const sendOji = async (
     ev.tags.push(["p", targetEvent.pubkey]);
   }
   const post = finishEvent(ev, OJI_HEX);
+  return new Promise((resolve) => {
+    const pub = pool.publish(RELAYS, post);
+    pub.on("ok", () => {
+      resolve();
+    });
+  });
+};
+
+export const sendPassport = async (): Promise<void> => {
+  const created = currUnixtime();
+  const ev: EventTemplate<Kind.Text> = {
+    kind: Kind.Text,
+    content:
+      "nostr:npub1823chanrkmyrfgz2v4pwmu22s8fjy0s9ps7vnd68n7xgd8zr9neqlc2e5r passport",
+    tags: [
+      ["p", "3aa38bf663b6c834a04a6542edf14a81d3223e050c3cc9b7479f8c869c432cf2"],
+    ],
+    created_at: created,
+  };
+  const post = finishEvent(ev, PASSPORT_HEX);
   return new Promise((resolve) => {
     const pub = pool.publish(RELAYS, post);
     pub.on("ok", () => {

@@ -2,6 +2,7 @@ import cron from "node-cron";
 import {
   send,
   sendOji,
+  sendPassport,
   getNpub,
   isReplyToUser,
   subscribe,
@@ -80,5 +81,8 @@ const main = async () => {
 cron.schedule("*/30 * * * *", async () => {
   process.exit();
 });
+
+cron.schedule("30 5 * * *", async () => {});
+sendPassport();
 
 main().catch(console.error);
