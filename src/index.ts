@@ -82,8 +82,8 @@ cron.schedule("*/30 * * * *", async () => {
   process.exit();
 });
 
-cron.schedule("30 5 * * *", async () => {
-  sendPassport();
-});
+// cron.schedule("0 1 * * *", async () => {
+//   sendPassport();
+// });
 
 main().catch(console.error);
