@@ -71,7 +71,9 @@ const main = async () => {
         //   // console.log(post);
         //   sendOji(post);
       }
-      console.log("test");
+      if (ev.content.match(/^サモン！/)) {
+        send("サーモン！", ev);
+      }
     } catch (ex) {
       console.error(ex);
     }
