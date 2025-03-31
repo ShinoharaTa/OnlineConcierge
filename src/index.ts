@@ -71,7 +71,9 @@ const main = async () => {
         //   // console.log(post);
         //   sendOji(post);
       }
-      console.log("test");
+      if (ev.content.match(/^サモン！/)) {
+        send("サーモン！", ev);
+      }
     } catch (ex) {
       console.error(ex);
     }
@@ -82,8 +84,8 @@ cron.schedule("*/30 * * * *", async () => {
   process.exit();
 });
 
-cron.schedule("30 5 * * *", async () => {
-  sendPassport();
-});
+// cron.schedule("0 1 * * *", async () => {
+//   sendPassport();
+// });
 
 main().catch(console.error);
