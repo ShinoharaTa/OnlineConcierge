@@ -9,10 +9,9 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node --inspect dist/index.js",
-    "start:new": "tsc && node dist/newIndex.js",
-    "dev": "cross-env test=true npm run build && node dist/newIndex.js",
-    "dev:old": "cross-env test=true npm run build && node dist/index.js --dev",
+    "start": "npm run build && node dist/main.js",
+    "start:debug": "npm run build && node --inspect dist/main.js",
+    "dev": "cross-env test=true npm run build && node dist/main.js",
     "test": "npm run build && node dist/testIndex.js",
     "test:salmon": "npm run build && node dist/testIndex.js salmon",
     "test:calendar": "npm run build && node dist/testIndex.js calendar",
