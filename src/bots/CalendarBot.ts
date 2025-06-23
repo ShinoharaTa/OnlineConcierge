@@ -1,8 +1,37 @@
 import { BaseBotFilter, BaseBotAction, AndFilter, ReplyFilter, RegexFilter, type BotHandler } from "../core/BotHandler.js";
 import type { Event } from "nostr-tools";
 import type { NostrClient } from "../core/NostrClient.js";
-import { GoogleCalendarClient } from "../googleCalendar.js";
 import { formatISO } from "date-fns";
+
+// 簡易的なカレンダーイベント解析
+interface CalendarEvent {
+  summary: string;
+  description: string;
+  start: Date;
+  end: Date;
+  location?: string;
+}
+
+class CalendarEventParser {
+  async parseMentionToCalendarEvent(content: string, baseDate: Date): Promise<CalendarEvent | null> {
+    // 「予定 内容」形式から予定を抽出する簡易版
+    const match = content.match(/予定\s+(.+)/);
+    if (!match) return null;
+
+    const eventText = match[1];
+    
+    // 現在から1時間後を開始時刻、2時間を終了時刻に設定（簡易版）
+    const start = new Date(baseDate.getTime() + 60 * 60 * 1000); // 1時間後
+    const end = new Date(baseDate.getTime() + 2 * 60 * 60 * 1000); // 2時間後
+
+    return {
+      summary: eventText,
+      description: `Bot経由で作成された予定: ${eventText}`,
+      start,
+      end,
+    };
+  }
+}
 
 /**
  * カレンダーコマンドフィルタ
@@ -23,17 +52,17 @@ class CalendarCommandFilter extends BaseBotFilter {
  * カレンダーURL生成アクション
  */
 class CalendarAction extends BaseBotAction {
-  private googleClient: GoogleCalendarClient;
+  private parser: CalendarEventParser;
 
   constructor() {
     super();
-    this.googleClient = new GoogleCalendarClient();
+    this.parser = new CalendarEventParser();
   }
 
   async execute(event: Event, client: NostrClient): Promise<void> {
     try {
       // メンション内容を解析してカレンダーイベントを生成
-      const calendarEvent = await this.googleClient.parseMentionToCalendarEvent(
+      const calendarEvent = await this.parser.parseMentionToCalendarEvent(
         event.content,
         new Date()
       );

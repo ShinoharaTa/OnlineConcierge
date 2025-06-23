@@ -41,7 +41,7 @@ export class BotTester {
     // おじさんBotはテスト用環境変数があれば追加
     const ojiHex = process.env.OJI_HEX;
     if (ojiHex) {
-      const ojisanBot = createOjisanBot(ojiHex);
+      const ojisanBot = createOjisanBot();
       ojisanBot.enabled = true; // テストでは有効
       this.manager.register(ojisanBot);
     }

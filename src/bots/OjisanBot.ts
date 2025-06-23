@@ -1,55 +1,41 @@
-import { BaseBotFilter, BaseBotAction, type BotHandler } from "../core/BotHandler.js";
+import { BaseBotFilter, BaseBotAction, AndFilter, ReplyFilter, type BotHandler } from "../core/BotHandler.js";
 import type { Event } from "nostr-tools";
-import { NostrClient } from "../core/NostrClient.js";
-import { OjisanClient } from "../ojisan.js";
-import { nip19 } from "nostr-tools";
+import type { NostrClient } from "../core/NostrClient.js";
+
+// おじさん構文生成機能
+class OjisanGenerator {
+  async reactionToPost(content: string, profile: any): Promise<string> {
+    // 簡易版おじさん構文生成（実際はOpenAI APIを使用）
+    const ojisanPhrases = [
+      "そうだねぇ〜😊",
+      "なるほどなるほど💡",
+      "いいねいいね👍",
+      "そんな感じだよね〜😄",
+      "その通りだよ〜✨"
+    ];
+    return ojisanPhrases[Math.floor(Math.random() * ojisanPhrases.length)];
+  }
+}
 
 /**
- * おじさんフィルタ
+ * おじさん応答フィルタ
  */
 class OjisanFilter extends BaseBotFilter {
-  private latestInteractions: string[] = [];
-  private ojisanPrivateKey: string;
-
-  constructor(ojisanPrivateKey: string) {
+  constructor(private client: NostrClient) {
     super();
-    this.ojisanPrivateKey = ojisanPrivateKey;
   }
 
   matches(event: Event, client: NostrClient): boolean {
-    // おじさん自身の投稿は除外
-    if (this.isOjisanPost(event.pubkey)) {
-      return false;
-    }
-
-    // 短い投稿は除外
-    if (event.content.length < 10) {
-      return false;
-    }
-
-    // 最近反応したユーザーは除外
-    if (this.latestInteractions.includes(event.pubkey)) {
-      return false;
-    }
-
-    // 6%の確率で反応
-    if (Math.random() > 0.06) {
-      return false;
-    }
-
-    // 最新の反応リストを更新
-    this.latestInteractions.push(event.pubkey);
-    this.latestInteractions = this.latestInteractions.slice(-10);
-
-    return true;
-  }
-
-  private isOjisanPost(pubkey: string): boolean {
-    const ojisanClient = new NostrClient({ 
-      privateKey: this.ojisanPrivateKey, 
-      relays: [] 
-    });
-    return pubkey === ojisanClient.getPublicKey();
+    // おじさんDB存在チェック（簡易版）
+    const ojisanExists = false; // 現在は無効化
+    
+    // 6%の確率で応答
+    const randomChance = Math.random() < 0.06;
+    
+    // 短すぎるコンテンツは除外
+    const hasContent = event.content.length >= 10;
+    
+    return ojisanExists && randomChance && hasContent;
   }
 }
 
@@ -57,23 +43,20 @@ class OjisanFilter extends BaseBotFilter {
  * おじさん応答アクション
  */
 class OjisanAction extends BaseBotAction {
-  private ojisanClient: OjisanClient;
-  private ojisanPrivateKey: string;
+  private generator: OjisanGenerator;
 
-  constructor(ojisanPrivateKey: string) {
+  constructor() {
     super();
-    this.ojisanClient = new OjisanClient();
-    this.ojisanPrivateKey = ojisanPrivateKey;
+    this.generator = new OjisanGenerator();
   }
 
   async execute(event: Event, client: NostrClient): Promise<void> {
     try {
       const profile = await client.getUserMeta(event.pubkey);
-      const response = await this.ojisanClient.reactionToPost(event.content, profile);
-      
-      if (response) {
-        await client.sendText(response, event, this.ojisanPrivateKey);
-      }
+      const ojisanPost = await this.generator.reactionToPost(event.content, profile);
+
+      // 通常のテキスト送信
+      await client.sendText(ojisanPost, event);
     } catch (error) {
       console.error("Error in OjisanAction:", error);
     }
@@ -83,11 +66,13 @@ class OjisanAction extends BaseBotAction {
 /**
  * おじさんBotを生成する
  */
-export function createOjisanBot(ojisanPrivateKey: string): BotHandler {
+export function createOjisanBot(): BotHandler {
+  const ojisanFilter = new OjisanFilter(null); // clientは実行時に渡される
+
   return {
     name: "OjisanBot",
-    filter: new OjisanFilter(ojisanPrivateKey),
-    action: new OjisanAction(ojisanPrivateKey),
-    enabled: false, // デフォルトは無効
+    filter: ojisanFilter,
+    action: new OjisanAction(),
+    enabled: false, // デフォルトで無効化
   };
 } 

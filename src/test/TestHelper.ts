@@ -1,5 +1,9 @@
-import type { Event } from "nostr-tools";
-import { currUnixtime } from "../utils.js";
+import { Event } from "nostr-tools";
+
+// ユーティリティ関数
+function currUnixtime(): number {
+  return Math.floor(Date.now() / 1000);
+}
 
 /**
  * テスト用のモックイベント生成ヘルパー

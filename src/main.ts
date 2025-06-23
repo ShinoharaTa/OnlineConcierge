@@ -63,7 +63,7 @@ const main = async () => {
 
   // 3. おじさんBot（デフォルトは無効、環境変数があれば有効化可能）
   if (OJI_HEX) {
-    const ojisanBot = createOjisanBot(OJI_HEX);
+    const ojisanBot = createOjisanBot();
     ojisanBot.enabled = false; // デフォルトは無効
     botManager.register(ojisanBot);
     console.log("OjisanBot registered (disabled by default)");

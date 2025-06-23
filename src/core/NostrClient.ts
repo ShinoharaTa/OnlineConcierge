@@ -6,7 +6,6 @@ import {
   nip19,
 } from "nostr-tools";
 import type { Event, EventTemplate } from "nostr-tools";
-import { currUnixtime } from "../utils.js";
 import "websocket-polyfill";
 
 export interface NostrConfig {
@@ -148,4 +147,9 @@ export class NostrClient {
   close(): void {
     this.pool.close(this.config.relays);
   }
+}
+
+// ユーティリティ関数
+function currUnixtime(): number {
+  return Math.floor(Date.now() / 1000);
 } 
