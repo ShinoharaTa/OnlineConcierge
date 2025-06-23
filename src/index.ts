@@ -1,3 +1,6 @@
+// 旧バージョン - リファクタリング前のモノリシック実装
+// 新しい実装は src/newIndex.ts を参照してください
+
 import cron from "node-cron";
 import {
   send,

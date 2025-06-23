@@ -10,7 +10,14 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node --inspect dist/index.js",
-    "dev": "tsc && node dist/index.js --dev"
+    "start:new": "tsc && node dist/newIndex.js",
+    "dev": "cross-env test=true npm run build && node dist/newIndex.js",
+    "dev:old": "cross-env test=true npm run build && node dist/index.js --dev",
+    "test": "npm run build && node dist/testIndex.js",
+    "test:salmon": "npm run build && node dist/testIndex.js salmon",
+    "test:calendar": "npm run build && node dist/testIndex.js calendar",
+    "test:ojisan": "npm run build && node dist/testIndex.js ojisan",
+    "test:management": "npm run build && node dist/testIndex.js management"
   },
   "dependencies": {
     "@babel/core": "^7.23.7",
@@ -31,5 +38,8 @@
     "sqlite3": "^5.1.7",
     "ts-node": "^10.9.1",
     "websocket-polyfill": "^0.0.3"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
