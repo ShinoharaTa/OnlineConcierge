@@ -1,6 +1,10 @@
 import { BaseBotFilter, BaseBotAction, type BotHandler } from "../core/BotHandler.js";
 import type { Event } from "nostr-tools";
 import type { NostrClient } from "../core/NostrClient.js";
+import dotenv from "dotenv";
+
+// 環境変数を読み込み
+dotenv.config();
 
 /**
  * サモンコマンドのフィルタ

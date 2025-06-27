@@ -5,7 +5,7 @@ import { BotManager } from "./core/BotManager.js";
 import { createSalmonBot } from "./bots/SalmonBot.js";
 import { createOjisanBot } from "./bots/OjisanBot.js";
 import { createCalendarBot } from "./bots/CalendarBot.js";
-import { createPassportAction } from "./bots/PassportBot.js";
+import { createPassportAction, isPassportAvailable } from "./bots/PassportBot.js";
 
 dotenv.config();
 
@@ -23,10 +23,8 @@ const RELAYS = [
 // ];
 
 const main = async () => {
-  // 環境変数の確認
+  // 基本的な環境変数の確認
   const HEX = process.env.HEX;
-  const OJI_HEX = process.env.OJI_HEX;
-  const PASSPORT_HEX = process.env.PASSPORT_HEX;
   const TEST_MODE = process.env.test === "true" || process.env.TEST_MODE === "true";
 
   if (!HEX) {
@@ -61,20 +59,24 @@ const main = async () => {
   // 2. カレンダーBot（常に有効）
   botManager.register(createCalendarBot());
 
-  // 3. おじさんBot（デフォルトは無効、環境変数があれば有効化可能）
-  if (OJI_HEX) {
-    const ojisanBot = createOjisanBot();
-    ojisanBot.enabled = false; // デフォルトは無効
-    botManager.register(ojisanBot);
-    console.log("OjisanBot registered (disabled by default)");
+  // 3. おじさんBot（環境変数OJI_HEXがある場合のみ有効化）
+  const ojisanBot = createOjisanBot();
+  botManager.register(ojisanBot);
+  if (ojisanBot.enabled) {
+    console.log("OjisanBot registered and enabled");
+  } else {
+    console.log("OjisanBot registered but disabled (OJI_HEX not found)");
   }
 
   // Bot管理コマンドの設定（将来の拡張用）
   setupBotManagementCommands(botManager, nostrClient);
 
-  // パスポート機能の設定（スケジュール実行）
-  if (PASSPORT_HEX) {
-    setupPassportSchedule(nostrClient, PASSPORT_HEX);
+  // パスポート機能の設定（環境変数がある場合のみ）
+  if (isPassportAvailable()) {
+    setupPassportSchedule(nostrClient);
+    console.log("Passport feature configured");
+  } else {
+    console.log("Passport feature disabled (PASSPORT_HEX not found)");
   }
 
   // Botマネージャーを開始
@@ -121,9 +123,8 @@ function setupBotManagementCommands(botManager: BotManager, client: NostrClient)
 /**
  * パスポート機能のスケジュール設定
  */
-function setupPassportSchedule(client: NostrClient, passportHex: string) {
-  const targetNpub = "npub1823chanrkmyrfgz2v4pwmu22s8fjy0s9ps7vnd68n7xgd8zr9neqlc2e5r";
-  const passportAction = createPassportAction(targetNpub, passportHex);
+function setupPassportSchedule(client: NostrClient) {
+  const passportAction = createPassportAction(); // 環境変数から自動取得
 
   // 毎日午前1時に実行（現在は無効化）
   // cron.schedule("0 1 * * *", async () => {

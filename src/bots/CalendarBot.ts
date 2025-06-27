@@ -2,6 +2,10 @@ import { BaseBotFilter, BaseBotAction, AndFilter, ReplyFilter, RegexFilter, type
 import type { Event } from "nostr-tools";
 import type { NostrClient } from "../core/NostrClient.js";
 import { formatISO } from "date-fns";
+import dotenv from "dotenv";
+
+// 環境変数を読み込み
+dotenv.config();
 
 // 簡易的なカレンダーイベント解析
 interface CalendarEvent {

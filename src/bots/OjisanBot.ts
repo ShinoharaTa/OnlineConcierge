@@ -1,6 +1,10 @@
 import { BaseBotFilter, BaseBotAction, AndFilter, ReplyFilter, type BotHandler } from "../core/BotHandler.js";
 import type { Event } from "nostr-tools";
 import type { NostrClient } from "../core/NostrClient.js";
+import dotenv from "dotenv";
+
+// 環境変数を読み込み
+dotenv.config();
 
 // おじさん構文生成機能
 class OjisanGenerator {
@@ -68,11 +72,15 @@ class OjisanAction extends BaseBotAction {
  */
 export function createOjisanBot(): BotHandler {
   const ojisanFilter = new OjisanFilter(null); // clientは実行時に渡される
+  
+  // 環境変数OJI_HEXの存在チェック
+  const OJI_HEX = process.env.OJI_HEX;
+  const enabled = !!OJI_HEX; // 環境変数がある場合のみ有効化
 
   return {
     name: "OjisanBot",
     filter: ojisanFilter,
     action: new OjisanAction(),
-    enabled: false, // デフォルトで無効化
+    enabled: enabled,
   };
 } 
