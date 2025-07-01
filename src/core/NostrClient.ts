@@ -121,6 +121,28 @@ export class NostrClient {
   }
 
   /**
+   * ユーザーの詳細プロフィール情報を取得する（kind:0）
+   */
+  async getUserProfile(pubkey: string): Promise<{name?: string, display_name?: string, about?: string, picture?: string}> {
+    try {
+      const kind0 = await this.pool.get(this.config.relays, { kinds: [0], authors: [pubkey] });
+      if (kind0) {
+        const userMeta = JSON.parse(kind0.content);
+        return {
+          name: userMeta.name || "",
+          display_name: userMeta.display_name || "",
+          about: userMeta.about || "",
+          picture: userMeta.picture || ""
+        };
+      }
+      return {};
+    } catch (error) {
+      console.error("Error parsing user profile:", error);
+      return {};
+    }
+  }
+
+  /**
    * 指定されたイベントが自分への返信かどうか判定する
    */
   isReplyToMe(event: Event): boolean {

@@ -6,6 +6,7 @@ import { createSalmonBot } from "./bots/SalmonBot.js";
 import { createOjisanBot } from "./bots/OjisanBot.js";
 import { createCalendarBot } from "./bots/CalendarBot.js";
 import { createPassportAction, isPassportAvailable } from "./bots/PassportBot.js";
+import { createMonitorBot, getMonitorConfig } from "./bots/MonitorBot.js";
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ const RELAYS = [
 const main = async () => {
   // 基本的な環境変数の確認
   const HEX = process.env.HEX;
-  const TEST_MODE = process.env.test === "true" || process.env.TEST_MODE === "true";
+  const TEST_MODE = process.env.TEST_MODE === "true";
 
   if (!HEX) {
     console.error("HEX environment variable is required");
@@ -66,6 +67,18 @@ const main = async () => {
     console.log("OjisanBot registered and enabled");
   } else {
     console.log("OjisanBot registered but disabled (OJI_HEX not found)");
+  }
+
+  // 4. MonitorBot（Discord webhook URLがある場合のみ有効化）
+  const monitorBot = createMonitorBot();
+  botManager.register(monitorBot);
+  if (monitorBot.enabled) {
+    const config = getMonitorConfig();
+    console.log("MonitorBot registered and enabled");
+    console.log(`  - Keywords: ${config.keywords.length > 0 ? config.keywords.join(', ') : 'none'}`);
+    console.log(`  - NPubs: ${config.npubs.length > 0 ? config.npubs.length + ' npubs' : 'none'}`);
+  } else {
+    console.log("MonitorBot registered but disabled (DISCORD_WEBHOOK_URL not found)");
   }
 
   // Bot管理コマンドの設定（将来の拡張用）

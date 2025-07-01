@@ -28,6 +28,9 @@ const main = async () => {
     case "ojisan":
       await tester.testOjisanBot();
       break;
+    case "monitor":
+      await tester.testMonitorBot();
+      break;
     case "management":
       await tester.testBotManagement();
       break;

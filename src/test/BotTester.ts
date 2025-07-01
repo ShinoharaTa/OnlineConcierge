@@ -1,7 +1,7 @@
 import { NostrClient } from "../core/NostrClient.js";
 import { BotManager } from "../core/BotManager.js";
 import { TestHelper } from "./TestHelper.js";
-import { createSalmonBot, createCalendarBot, createOjisanBot } from "../bots/index.js";
+import { createSalmonBot, createCalendarBot, createOjisanBot, createMonitorBot } from "../bots/index.js";
 
 const RELAYS = [
   "wss://relay-jp.nostr.wirednet.jp",
@@ -45,6 +45,11 @@ export class BotTester {
       ojisanBot.enabled = true; // テストでは有効
       this.manager.register(ojisanBot);
     }
+
+    // MonitorBotはテスト時には無効化（実際のDiscord通知を防ぐため）
+    const monitorBot = createMonitorBot();
+    monitorBot.enabled = false; // テストでは無効
+    this.manager.register(monitorBot);
   }
 
   /**
@@ -77,16 +82,37 @@ export class BotTester {
     const botPubkey = this.client.getPublicKey();
     
     const testEvents = [
+      // 基本的なパターン
       TestHelper.createMentionEvent("予定 明日の午後2時から会議", botPubkey, "test_user_1"),
+      
+      // 複雑な時間指定
       TestHelper.createMentionEvent("予定 来週の金曜日 12時からランチ 渋谷駅前", botPubkey, "test_user_2"),
-      TestHelper.createMentionEvent("こんにちは", botPubkey), // マッチしないパターン
+      
+      // 相対的な日時表現
+      TestHelper.createMentionEvent("予定 明後日の朝10時から病院", botPubkey, "test_user_3"),
+      
+      // 期間指定
+      TestHelper.createMentionEvent("予定 今度の土曜日 14:00-16:00 プレゼン準備", botPubkey, "test_user_4"),
+      
+      // 場所付き
+      TestHelper.createMentionEvent("予定 来月の15日 午前9時 東京駅で待ち合わせ", botPubkey, "test_user_5"),
+      
+      // 自然言語表現
+      TestHelper.createMentionEvent("予定 再来週の火曜日の夕方から友達と映画", botPubkey, "test_user_6"),
+      
+      // GPTが得意とする複雑なケース
+      TestHelper.createMentionEvent("予定 4月25日の午後3時半から1時間ほど、新宿のカフェで打ち合わせ", botPubkey, "test_user_7"),
+      
+      // マッチしないパターン
+      TestHelper.createMentionEvent("こんにちは", botPubkey), 
     ];
 
     for (const event of testEvents) {
       console.log(`📤 テストイベント: "${event.content}"`);
       console.log(`👤 送信者: ${event.pubkey.slice(0, 16)}...`);
       await this.manager['handleEvent'](event);
-      await this.sleep(1000);
+      console.log("──────────────────────────────────────────────────");
+      await this.sleep(1500); // GPT解析に時間がかかる可能性があるため少し長めに
     }
 
     TestHelper.logTestEnd("CalendarBot");
@@ -114,6 +140,30 @@ export class BotTester {
     }
 
     TestHelper.logTestEnd("OjisanBot");
+  }
+
+  /**
+   * MonitorBot機能のテスト
+   */
+  async testMonitorBot(): Promise<void> {
+    TestHelper.logTestStart("MonitorBot");
+    
+    // テスト用のキーワードやnpubを含む投稿をシミュレート
+    const testEvents = [
+      TestHelper.createMockEvent("これは通常の投稿です"),
+      TestHelper.createMockEvent("緊急事態が発生しました！", "test_user_alert"),
+      TestHelper.createMockEvent("スパムっぽい内容", "test_user_spam"),
+      TestHelper.createMockEvent("おはようございます", "test_user_normal"),
+    ];
+
+    for (const event of testEvents) {
+      console.log(`📤 監視テストイベント: "${event.content}"`);
+      console.log(`👤 送信者: ${event.pubkey.slice(0, 16)}...`);
+      // MonitorBotはテストでは無効なので、フィルタのテストのみ
+      await this.sleep(500);
+    }
+
+    TestHelper.logTestEnd("MonitorBot");
   }
 
   /**
@@ -151,6 +201,7 @@ export class BotTester {
     await this.testSalmonBot();
     await this.testCalendarBot();
     await this.testOjisanBot();
+    await this.testMonitorBot();
     await this.testBotManagement();
     
     console.log("🎉 全テストが完了しました！");
