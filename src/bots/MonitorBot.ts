@@ -151,9 +151,7 @@ class DiscordNotificationAction extends BaseBotAction {
         const displayName = userMeta.display_name || "";
         const name = userMeta.name || "";
         
-        if (displayName && name) {
-          userName = `${name}, ${displayName}`;
-        } else if (displayName) {
+        if (displayName) {
           userName = displayName;
         } else if (name) {
           userName = name;
@@ -166,6 +164,7 @@ class DiscordNotificationAction extends BaseBotAction {
 
       // note1形式のIDを生成
       const noteId = nip19.noteEncode(event.id);
+      const nostterUrl = `https://nostter.app/${noteId}`;
       const nostxUrl = `https://nostx.io/${noteId}`;
 
       // マッチした理由を特定
@@ -173,14 +172,9 @@ class DiscordNotificationAction extends BaseBotAction {
       
       // Discord埋め込みメッセージを構築
       const embed = {
-        title: "Nostrタイムライン通知Bot",
+        title: userName,
         description: this.truncateText(event.content, 1000),
         fields: [
-          {
-            name: "名前",
-            value: userName,
-            inline: true
-          },
           {
             name: "日時",
             value: new Date(event.created_at * 1000).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
@@ -192,9 +186,14 @@ class DiscordNotificationAction extends BaseBotAction {
             inline: false
           },
           {
-            name: "🔗 リンク",
-            value: `[nostx.ioで表示](${nostxUrl})`,
-            inline: false
+            name: "Nostterで開く",
+            value: `[nostter.app](${nostterUrl})`,
+            inline: true
+          },
+          {
+            name: "Nostxで開く",
+            value: `[nostx.io](${nostxUrl})`,
+            inline: true
           }
         ],
         footer: {
