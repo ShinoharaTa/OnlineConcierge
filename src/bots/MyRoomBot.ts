@@ -11,16 +11,27 @@ dotenv.config();
  * マイルーム応答フィルタ
  */
 class MyRoomFilter extends BaseBotFilter {
+  private allowedAuthors: string[];
+
   constructor(private client: NostrClient) {
     super();
+    // 環境変数からカンマ区切りのhex配列を読み込み
+    const authorsEnv = process.env.MYROOM_AUTHORS || '';
+    this.allowedAuthors = authorsEnv
+      .split(',')
+      .map(hex => hex.trim())
+      .filter(hex => hex.length > 0);
   }
 
   matches(event: Event, client: NostrClient): boolean {
+    // 許可されたauthorからの投稿かチェック
+    const isAllowedAuthor = this.allowedAuthors.length === 0 || this.allowedAuthors.includes(event.pubkey);
+    
     // "まいへや"という単語のみに厳密に反応（前後に文字が続かない場合のみ）
     const pattern = /^まいへや$/;
     const containsKeyword = pattern.test(event.content.trim());
     
-    return containsKeyword;
+    return isAllowedAuthor && containsKeyword;
   }
 }
 
@@ -156,8 +167,10 @@ class MyRoomAction extends BaseBotAction {
 export function createMyRoomBot(): BotHandler {
   const myRoomFilter = new MyRoomFilter(null); // clientは実行時に渡される
   
-  // 環境変数の存在チェック
-  const enabled = !!(process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN);
+  // 環境変数の存在チェック（InfluxDB設定 + 許可されたauthors）
+  const hasInfluxConfig = !!(process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN);
+  const hasAuthors = !!process.env.MYROOM_AUTHORS;
+  const enabled = hasInfluxConfig && hasAuthors;
 
   return {
     name: "MyRoomBot",

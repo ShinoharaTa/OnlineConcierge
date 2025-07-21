@@ -82,13 +82,23 @@ const main = async () => {
     console.log("MonitorBot registered but disabled (DISCORD_WEBHOOK_URL not found)");
   }
 
-  // 5. MyRoomBot（InfluxDB設定がある場合のみ有効化）
+  // 5. MyRoomBot（InfluxDB設定 + 許可されたauthors設定がある場合のみ有効化）
   const myRoomBot = createMyRoomBot();
   botManager.register(myRoomBot);
   if (myRoomBot.enabled) {
+    const authorsCount = (process.env.MYROOM_AUTHORS || '').split(',').filter(hex => hex.trim().length > 0).length;
     console.log("MyRoomBot registered and enabled");
+    console.log(`  - Allowed authors: ${authorsCount} users`);
   } else {
-    console.log("MyRoomBot registered but disabled (InfluxDB configuration not found)");
+    const hasInfluxConfig = !!(process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN);
+    const hasAuthors = !!process.env.MYROOM_AUTHORS;
+    if (!hasInfluxConfig) {
+      console.log("MyRoomBot registered but disabled (InfluxDB configuration not found)");
+    } else if (!hasAuthors) {
+      console.log("MyRoomBot registered but disabled (MYROOM_AUTHORS not found)");
+    } else {
+      console.log("MyRoomBot registered but disabled");
+    }
   }
 
   // Bot管理コマンドの設定（将来の拡張用）

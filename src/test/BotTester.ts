@@ -181,15 +181,20 @@ export class BotTester {
   async testMyRoomBot(): Promise<void> {
     TestHelper.logTestStart("MyRoomBot");
     
+    // テスト用の許可されたauthorを設定
+    const allowedAuthor1 = "allowed_user_1";
+    const allowedAuthor2 = "allowed_user_2";
+    const unauthorizedAuthor = "unauthorized_user";
+
     const testEvents = [
-      TestHelper.createMockEvent("まいへや", "user1"), // ✅ 厳密一致
-      TestHelper.createMockEvent(" まいへや ", "user2"), // ✅ 前後スペースあり（trim後一致）
-      TestHelper.createMockEvent("まいへや？", "user3"), // ❌ 記号付き
-      TestHelper.createMockEvent("まいへや！", "user4"), // ❌ 記号付き
-      TestHelper.createMockEvent("まいへや 教えて", "user5"), // ❌ スペース後に続く
-      TestHelper.createMockEvent("今日のまいへやはどう？", "user6"), // ❌ 他の文字が続く
-      TestHelper.createMockEvent("まいへやの状況", "user7"), // ❌ 「の」が続く
-      TestHelper.createMockEvent("こんにちは", "user8"), // ❌ キーワードなし
+      TestHelper.createMockEvent("まいへや", allowedAuthor1), // ✅ 許可されたauthor + 正しいキーワード
+      TestHelper.createMockEvent(" まいへや ", allowedAuthor2), // ✅ 別の許可されたauthor + trim後一致
+      TestHelper.createMockEvent("まいへや", unauthorizedAuthor), // ❌ 許可されていないauthor
+      TestHelper.createMockEvent("まいへや？", allowedAuthor1), // ❌ 許可されたauthorだが記号付き
+      TestHelper.createMockEvent("まいへや！", allowedAuthor1), // ❌ 許可されたauthorだが記号付き
+      TestHelper.createMockEvent("まいへや 教えて", allowedAuthor1), // ❌ 許可されたauthorだがスペース後に続く
+      TestHelper.createMockEvent("今日のまいへやはどう？", allowedAuthor1), // ❌ 許可されたauthorだが他の文字が続く
+      TestHelper.createMockEvent("こんにちは", allowedAuthor1), // ❌ 許可されたauthorだがキーワードなし
     ];
 
     for (const event of testEvents) {
