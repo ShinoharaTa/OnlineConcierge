@@ -7,6 +7,7 @@ import { createOjisanBot } from "./bots/OjisanBot.js";
 import { createCalendarBot } from "./bots/CalendarBot.js";
 import { createPassportAction, isPassportAvailable } from "./bots/PassportBot.js";
 import { createMonitorBot, getMonitorConfig } from "./bots/MonitorBot.js";
+import { createMyRoomBot } from "./bots/MyRoomBot.js";
 
 dotenv.config();
 
@@ -79,6 +80,15 @@ const main = async () => {
     console.log(`  - NPubs: ${config.npubs.length > 0 ? config.npubs.length + ' npubs' : 'none'}`);
   } else {
     console.log("MonitorBot registered but disabled (DISCORD_WEBHOOK_URL not found)");
+  }
+
+  // 5. MyRoomBot（InfluxDB設定がある場合のみ有効化）
+  const myRoomBot = createMyRoomBot();
+  botManager.register(myRoomBot);
+  if (myRoomBot.enabled) {
+    console.log("MyRoomBot registered and enabled");
+  } else {
+    console.log("MyRoomBot registered but disabled (InfluxDB configuration not found)");
   }
 
   // Bot管理コマンドの設定（将来の拡張用）

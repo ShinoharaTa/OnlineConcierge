@@ -1,7 +1,7 @@
 import { NostrClient } from "../core/NostrClient.js";
 import { BotManager } from "../core/BotManager.js";
 import { TestHelper } from "./TestHelper.js";
-import { createSalmonBot, createCalendarBot, createOjisanBot, createMonitorBot } from "../bots/index.js";
+import { createSalmonBot, createCalendarBot, createOjisanBot, createMonitorBot, createMyRoomBot } from "../bots/index.js";
 
 const RELAYS = [
   "wss://relay-jp.nostr.wirednet.jp",
@@ -50,6 +50,15 @@ export class BotTester {
     const monitorBot = createMonitorBot();
     monitorBot.enabled = false; // テストでは無効
     this.manager.register(monitorBot);
+
+    // MyRoomBotはテスト用環境変数があれば追加
+    const myRoomBot = createMyRoomBot();
+    if (process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN) {
+      myRoomBot.enabled = true; // テストでは有効
+    } else {
+      myRoomBot.enabled = false; // テストでは模擬データで動作
+    }
+    this.manager.register(myRoomBot);
   }
 
   /**
@@ -167,6 +176,45 @@ export class BotTester {
   }
 
   /**
+   * MyRoomBotのテスト
+   */
+  async testMyRoomBot(): Promise<void> {
+    TestHelper.logTestStart("MyRoomBot");
+    
+    const testEvents = [
+      TestHelper.createMockEvent("まいへや", "user1"), // ✅ 厳密一致
+      TestHelper.createMockEvent(" まいへや ", "user2"), // ✅ 前後スペースあり（trim後一致）
+      TestHelper.createMockEvent("まいへや？", "user3"), // ❌ 記号付き
+      TestHelper.createMockEvent("まいへや！", "user4"), // ❌ 記号付き
+      TestHelper.createMockEvent("まいへや 教えて", "user5"), // ❌ スペース後に続く
+      TestHelper.createMockEvent("今日のまいへやはどう？", "user6"), // ❌ 他の文字が続く
+      TestHelper.createMockEvent("まいへやの状況", "user7"), // ❌ 「の」が続く
+      TestHelper.createMockEvent("こんにちは", "user8"), // ❌ キーワードなし
+    ];
+
+    for (const event of testEvents) {
+      console.log(`📤 MyRoomテストイベント: "${event.content}"`);
+      console.log(`👤 送信者: ${event.pubkey.slice(0, 16)}...`);
+      
+      // テスト用のフィルタチェック
+      const handler = this.manager.getHandlers().find(h => h.name === "MyRoomBot");
+      if (handler) {
+        const matches = handler.filter.matches(event, this.client);
+        console.log(`🔍 フィルタマッチ: ${matches ? '✅' : '❌'}`);
+        
+        if (matches) {
+          await this.manager['handleEvent'](event);
+        }
+      }
+      
+      console.log("──────────────────────────────────────────────────");
+      await this.sleep(1000);
+    }
+
+    TestHelper.logTestEnd("MyRoomBot");
+  }
+
+  /**
    * Bot管理コマンドのテスト
    */
   async testBotManagement(): Promise<void> {
@@ -202,6 +250,7 @@ export class BotTester {
     await this.testCalendarBot();
     await this.testOjisanBot();
     await this.testMonitorBot();
+    await this.testMyRoomBot();
     await this.testBotManagement();
     
     console.log("🎉 全テストが完了しました！");

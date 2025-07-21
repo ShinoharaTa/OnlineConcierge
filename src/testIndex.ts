@@ -31,6 +31,9 @@ const main = async () => {
     case "monitor":
       await tester.testMonitorBot();
       break;
+    case "myroom":
+      await tester.testMyRoomBot();
+      break;
     case "management":
       await tester.testBotManagement();
       break;
