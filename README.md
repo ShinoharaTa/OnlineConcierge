@@ -1,5 +1,10 @@
 # 篠川 Nostr Bot
 
+## 運用移行のお知らせ
+
+このリポジトリの Bot 機能は [`awesome-nostr-apps`](https://github.com/ShinoharaTa/awesome-nostr-apps) に統合しました。
+今後の開発・運用は統合先で行い、このリポジトリ単体での運用は終了します。
+
 フィルタ・アクションパターンを使用した疎結合なNostr Botシステム
 
 ## 🚀 クイックスタート
